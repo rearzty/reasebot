@@ -25,3 +25,11 @@ class Players(Base):
     user_id: Mapped[int] = mapped_column(nullable=False)
     score: Mapped[int] = mapped_column(nullable=False)
     username: Mapped[str] = mapped_column(nullable=False)
+
+
+class Married(Base):
+    __tablename__ = "married"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    married1: Mapped[int] = mapped_column(nullable=False)
+    married2: Mapped[int] = mapped_column(nullable=False)
+    chat_id: Mapped[int] = mapped_column(nullable=False)
