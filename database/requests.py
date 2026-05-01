@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from .models import Muted, Players, Married
+from .models import Muted, Players, Married, Trigger, Response
 from . import session_maker
 from sqlalchemy import or_
 
@@ -104,7 +104,47 @@ async def delete_married(user_id: int) -> bool:
         return False
 
 
-async def set_married(chat_id: int, married1: int, married2: int):
+async def set_married(chat_id: int, married1: int, married2: int) -> None:
     async with session_maker() as session:
         session.add(Married(chat_id=chat_id, married1=married1, married2=married2))
+        await session.commit()
+
+
+async def get_responses(trigger_text: str) -> list[Response]:
+    async with session_maker() as session:
+        trigger = await session.execute(
+            select(Trigger).where(Trigger.text == trigger_text)
+        )
+        trigger = trigger.scalar()
+        if not trigger:
+            return []
+        responses = await session.execute(
+            select(Response).where(Response.trigger_id == trigger.id)
+        )
+        return responses.scalars().all()
+
+
+async def add_response(trigger_text: str, response_text: str) -> None:
+    async with session_maker() as session:
+        trigger = await session.execute(
+            select(Trigger).where(Trigger.text == trigger_text)
+        )
+        trigger = trigger.scalar()
+        if not trigger:
+            trigger = Trigger(text=trigger_text)
+            session.add(trigger)
+            await session.flush()
+
+        response = await session.execute(
+            select(Response).where(
+                Response.trigger_id == trigger.id,
+                Response.text == response_text
+            )
+        )
+        response = response.scalar()
+        if response:
+            response.weight += 1
+        else:
+            session.add(Response(trigger_id=trigger.id, text=response_text))
+
         await session.commit()

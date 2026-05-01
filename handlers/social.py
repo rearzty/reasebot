@@ -33,8 +33,3 @@ async def hug(message: Message, bot: Bot):
 async def byk(message: Message, bot: Bot):
     await bot.send_message(message.chat.id,
                            f'{message.from_user.first_name} быканул(а) на {message.reply_to_message.from_user.first_name}')
-
-
-@router.message()
-async def echo(message: Message):
-    pass
